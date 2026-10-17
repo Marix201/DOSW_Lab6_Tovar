@@ -116,3 +116,14 @@ npm test
 ## Documentación adicional
 
 El informe completo del laboratorio, con arquitectura detallada, evidencias, resultados de pruebas y respuestas a las preguntas de análisis, está en [`docs/informe-laboratorio.md`](docs/informe-laboratorio.md).
+
+
+## Resolución Parcial
+Enlace de Jira: https://marianatc13.atlassian.net/jira/software/projects/P2D/boards/2/backlog?selectedIssue=P2D-1&atlOrigin=eyJpIjoiOTRmN2RmN2E1NGQyNDI2MmI3ZjMyZWRkNzkzODAzZmMiLCJwIjoiaiJ9
+
+## Diagramas C4
+<img width="1580" height="1654" alt="Diagramas parcial" src="https://github.com/user-attachments/assets/a9479079-ed00-4d52-b79e-5fb31f2bf00a" />
+<img width="1821" height="1110" alt="Diagrama parcial 2" src="https://github.com/user-attachments/assets/95eaac31-780b-483e-9f81-739c18329740" />
+
+
+
