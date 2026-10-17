@@ -22,6 +22,13 @@ public record TaskUpdateRequest(
         @NotNull(message = "Priority is required")
         TaskPriority priority,
 
-        LocalDate dueDate
+        LocalDate dueDate,
+
+        Long categoryId
 ) {
+
+    public TaskUpdateRequest(String title, String description, TaskStatus status,
+                             TaskPriority priority, LocalDate dueDate) {
+        this(title, description, status, priority, dueDate, null);
+    }
 }

@@ -13,6 +13,12 @@ public record TaskResponse(
         TaskStatus status,
         TaskPriority priority,
         LocalDate dueDate,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        CategoryResponse category
 ) {
+
+    public TaskResponse(Long id, String title, String description, TaskStatus status,
+                        TaskPriority priority, LocalDate dueDate, LocalDateTime createdAt) {
+        this(id, title, description, status, priority, dueDate, createdAt, null);
+    }
 }

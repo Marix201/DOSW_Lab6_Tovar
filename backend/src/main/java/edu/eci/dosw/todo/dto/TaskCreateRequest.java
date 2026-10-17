@@ -16,6 +16,12 @@ public record TaskCreateRequest(
 
         TaskPriority priority,
 
-        LocalDate dueDate
+        LocalDate dueDate,
+
+        Long categoryId
 ) {
+
+    public TaskCreateRequest(String title, String description, TaskPriority priority, LocalDate dueDate) {
+        this(title, description, priority, dueDate, null);
+    }
 }
