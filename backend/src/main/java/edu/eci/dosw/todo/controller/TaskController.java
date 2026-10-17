@@ -3,6 +3,7 @@ package edu.eci.dosw.todo.controller;
 import edu.eci.dosw.todo.dto.TaskCreateRequest;
 import edu.eci.dosw.todo.dto.TaskResponse;
 import edu.eci.dosw.todo.dto.TaskUpdateRequest;
+import edu.eci.dosw.todo.exception.InvalidTaskFilterException;
 import edu.eci.dosw.todo.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -29,7 +31,18 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TaskResponse>> findAll() {
+    public ResponseEntity<List<TaskResponse>> findAll(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(defaultValue = "false") boolean uncategorized) {
+        if (categoryId != null && uncategorized) {
+            throw new InvalidTaskFilterException();
+        }
+        if (categoryId != null) {
+            return ResponseEntity.ok(taskService.findByCategory(categoryId));
+        }
+        if (uncategorized) {
+            return ResponseEntity.ok(taskService.findWithoutCategory());
+        }
         return ResponseEntity.ok(taskService.findAll());
     }
 
