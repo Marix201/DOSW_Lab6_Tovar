@@ -10,6 +10,10 @@ public interface TaskService {
 
     List<TaskResponse> findAll();
 
+    List<TaskResponse> findByCategory(Long categoryId);
+
+    List<TaskResponse> findWithoutCategory();
+
     TaskResponse findById(Long id);
 
     TaskResponse create(TaskCreateRequest request);
