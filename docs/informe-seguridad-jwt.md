@@ -66,9 +66,15 @@ Además, se ejecutaron las pruebas automatizadas del proyecto:
 - En producción debe utilizarse HTTPS.
 - Las credenciales de PostgreSQL deben gestionarse de forma segura.
 - No se implementaron renovación de tokens, recuperación de contraseña ni autenticación multifactor.
-- La seguridad de la propiedad de las tareas debe probarse también con dos usuarios distintos.
+- La propiedad de las tareas cuenta con pruebas de integración para dos usuarios distintos: lectura de tareas ajenas, intentos de actualización y eliminación, y verificación de que los datos originales permanecen intactos.
 - Las pruebas automatizadas y las verificaciones manuales documentan los escenarios comprobados; no constituyen una auditoría de seguridad completa.
 
-## 8. Conclusión
+## 8. Alcance de las pruebas automatizadas
+
+El conjunto `SecurityIntegrationTest` comprueba el registro, el inicio de sesión, la validación del token, los endpoints protegidos, el perfil, el aislamiento de tareas entre usuarios y la restricción del endpoint administrativo. `TaskRepositoryOwnershipTest` verifica las consultas filtradas por propietario y `JwtServiceTest` cubre la emisión y el rechazo de tokens inválidos, alterados, expirados o con emisor incorrecto.
+
+Los resultados de las pruebas descritos aquí corresponden a las ejecuciones registradas durante el desarrollo. Antes de la entrega final, ejecuta de nuevo las pruebas en el estado definitivo del repositorio y actualiza cualquier cifra si cambia.
+
+## 9. Conclusión
 
 La solución integra autenticación JWT, contraseñas cifradas mediante BCrypt, autorización basada en roles y una separación entre frontend, API y persistencia. Los resultados de las pruebas documentadas respaldan el funcionamiento de los escenarios verificados, con las limitaciones indicadas.
