@@ -198,7 +198,7 @@ npm run build
 - [Scripts SQL](database/)
 - [Plantilla de variables de entorno](.env.example)
 - Reporte local JaCoCo: `backend/target/site/jacoco/index.html` (generado al ejecutar las pruebas; no asumir que está actualizado sin volver a correrlas).
-- Evidencias y video: agregar o actualizar los enlaces después de verificar los artefactos finales.
+- Evidencias: agregar o actualizar los enlaces después de verificar los artefactos finales.
 
 ## Seguridad y limitaciones
 
