@@ -180,7 +180,7 @@ cd backend
 ./mvnw clean verify
 ```
 
-El reporte JaCoCo se genera en `backend/target/site/jacoco/index.html`. Debe generarse de nuevo después de los cambios de seguridad para que refleje el código actual.
+El reporte JaCoCo se genera en `backend/target/site/jacoco/index.html` al ejecutar las pruebas del backend. La captura versionada en `docs/evidence/05-jacoco-report.png` corresponde a la medición actualizada documentada en el informe.
 
 Frontend, desde otra terminal:
 
@@ -197,12 +197,12 @@ npm run build
 - [Informe de seguridad JWT](docs/informe-seguridad-jwt.md)
 - [Scripts SQL](database/)
 - [Plantilla de variables de entorno](.env.example)
-- Reporte local JaCoCo: `backend/target/site/jacoco/index.html` (generado al ejecutar las pruebas; no asumir que está actualizado sin volver a correrlas).
-- Evidencias: agregar o actualizar los enlaces después de verificar los artefactos finales.
+- Reporte JaCoCo: `backend/target/site/jacoco/index.html` (se genera al ejecutar las pruebas de backend; el artefacto de CI también conserva el reporte de cada ejecución).
+- Evidencia de cobertura: `docs/evidence/05-jacoco-report.png`.
 
 ## Seguridad y limitaciones
 
 - No subir `.env`, claves JWT, contraseñas reales ni tokens de acceso al repositorio.
 - La clave JWT debe mantenerse secreta y ser distinta en cada entorno.
 - Las credenciales de ejemplo de este README son exclusivamente para una demostración local.
-- Antes de entregar, ejecutar nuevamente las pruebas de backend y frontend y actualizar el informe con los resultados reales de esa ejecución.
+- La ejecución más reciente de CI para esta rama completó correctamente las pruebas de backend y frontend y la compilación. Si se modifica el código de la aplicación, vuelve a ejecutar las pruebas y actualiza los resultados documentados.
