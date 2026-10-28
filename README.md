@@ -192,6 +192,7 @@ npm run build
 ## Documentación y entregables
 
 - [Informe del laboratorio](docs/informe-laboratorio.md)
+- [Informe de seguridad JWT](docs/informe-seguridad-jwt.md)
 - [Scripts SQL](database/)
 - [Plantilla de variables de entorno](.env.example)
 - Reporte local JaCoCo: `backend/target/site/jacoco/index.html` (generado al ejecutar las pruebas; no asumir que está actualizado sin volver a correrlas).
