@@ -6,8 +6,10 @@ import edu.eci.dosw.todo.dto.TaskUpdateRequest;
 import edu.eci.dosw.todo.entity.TaskEntity;
 import edu.eci.dosw.todo.entity.TaskPriority;
 import edu.eci.dosw.todo.entity.TaskStatus;
+import edu.eci.dosw.todo.entity.UserEntity;
 import edu.eci.dosw.todo.exception.TaskNotFoundException;
 import edu.eci.dosw.todo.repository.TaskRepository;
+import edu.eci.dosw.todo.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -30,8 +32,13 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class TaskServiceTest {
 
+    private static final Long OWNER_ID = 7L;
+
     @Mock
     private TaskRepository taskRepository;
+
+    @Mock
+    private UserRepository userRepository;
 
     @InjectMocks
     private TaskServiceImpl taskService;
@@ -49,113 +56,109 @@ class TaskServiceTest {
     }
 
     @Test
-    void findAll_shouldReturnTasks() {
-        when(taskRepository.findAll()).thenReturn(List.of(buildTask(1L, "Task A"), buildTask(2L, "Task B")));
+    void findAll_shouldOnlyQueryTheOwnersTasks() {
+        when(taskRepository.findAllByOwnerId(OWNER_ID))
+                .thenReturn(List.of(buildTask(1L, "Task A"), buildTask(2L, "Task B")));
 
-        List<TaskResponse> result = taskService.findAll();
+        List<TaskResponse> result = taskService.findAll(OWNER_ID);
 
-        assertThat(result).hasSize(2);
         assertThat(result).extracting(TaskResponse::title).containsExactly("Task A", "Task B");
+        verify(taskRepository, never()).findAll();
     }
 
     @Test
-    void findById_shouldReturnTaskWhenExists() {
-        when(taskRepository.findById(1L)).thenReturn(Optional.of(buildTask(1L, "Task A")));
+    void findById_shouldReturnTaskWhenOwned() {
+        when(taskRepository.findByIdAndOwnerId(1L, OWNER_ID)).thenReturn(Optional.of(buildTask(1L, "Task A")));
 
-        TaskResponse result = taskService.findById(1L);
+        TaskResponse result = taskService.findById(OWNER_ID, 1L);
 
         assertThat(result.id()).isEqualTo(1L);
         assertThat(result.title()).isEqualTo("Task A");
     }
 
     @Test
-    void findById_shouldThrowExceptionWhenTaskDoesNotExist() {
-        when(taskRepository.findById(99L)).thenReturn(Optional.empty());
+    void findById_shouldThrowNotFoundWhenMissingOrOwnedBySomeoneElse() {
+        when(taskRepository.findByIdAndOwnerId(99L, OWNER_ID)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> taskService.findById(99L))
+        assertThatThrownBy(() -> taskService.findById(OWNER_ID, 99L))
                 .isInstanceOf(TaskNotFoundException.class)
                 .hasMessage("Task with id 99 was not found");
     }
 
     @Test
-    void create_shouldCreateTask() {
-        TaskCreateRequest request = new TaskCreateRequest(
-                "New task", "Some description", TaskPriority.HIGH, LocalDate.of(2026, 10, 1));
+    void create_shouldAssignTheAuthenticatedOwner() {
+        UserEntity owner = new UserEntity();
+        owner.setId(OWNER_ID);
+        when(userRepository.getReferenceById(OWNER_ID)).thenReturn(owner);
         when(taskRepository.save(any(TaskEntity.class))).thenAnswer(invocation -> {
             TaskEntity saved = invocation.getArgument(0);
             saved.setId(10L);
             return saved;
         });
 
-        TaskResponse result = taskService.create(request);
+        TaskResponse result = taskService.create(OWNER_ID, new TaskCreateRequest(
+                "New task", "Some description", TaskPriority.HIGH, LocalDate.of(2026, 10, 1)));
 
+        ArgumentCaptor<TaskEntity> captor = ArgumentCaptor.forClass(TaskEntity.class);
+        verify(taskRepository).save(captor.capture());
+        assertThat(captor.getValue().getOwner()).isSameAs(owner);
         assertThat(result.id()).isEqualTo(10L);
-        assertThat(result.title()).isEqualTo("New task");
         assertThat(result.priority()).isEqualTo(TaskPriority.HIGH);
-        assertThat(result.dueDate()).isEqualTo(LocalDate.of(2026, 10, 1));
         assertThat(result.createdAt()).isNotNull();
     }
 
     @Test
-    void create_shouldAssignDefaultStatus() {
-        TaskCreateRequest request = new TaskCreateRequest("Default task", null, null, null);
+    void create_shouldAssignDefaultStatusAndPriority() {
+        when(userRepository.getReferenceById(OWNER_ID)).thenReturn(new UserEntity());
         when(taskRepository.save(any(TaskEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        TaskResponse result = taskService.create(request);
+        TaskResponse result = taskService.create(OWNER_ID, new TaskCreateRequest("Default task", null, null, null));
 
-        ArgumentCaptor<TaskEntity> captor = ArgumentCaptor.forClass(TaskEntity.class);
-        verify(taskRepository).save(captor.capture());
-        assertThat(captor.getValue().getStatus()).isEqualTo(TaskStatus.PENDING);
         assertThat(result.status()).isEqualTo(TaskStatus.PENDING);
         assertThat(result.priority()).isEqualTo(TaskPriority.MEDIUM);
     }
 
     @Test
-    void update_shouldUpdateExistingTask() {
+    void update_shouldModifyOwnedTask() {
         TaskEntity existing = buildTask(1L, "Old title");
-        when(taskRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(taskRepository.findByIdAndOwnerId(1L, OWNER_ID)).thenReturn(Optional.of(existing));
         when(taskRepository.save(any(TaskEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        TaskUpdateRequest request = new TaskUpdateRequest(
-                "New title", "New description", TaskStatus.IN_PROGRESS, TaskPriority.LOW, LocalDate.of(2026, 11, 5));
 
-        TaskResponse result = taskService.update(1L, request);
+        TaskResponse result = taskService.update(OWNER_ID, 1L, new TaskUpdateRequest(
+                "New title", "New description", TaskStatus.COMPLETED, TaskPriority.LOW, null));
 
-        assertThat(result.id()).isEqualTo(1L);
         assertThat(result.title()).isEqualTo("New title");
-        assertThat(result.description()).isEqualTo("New description");
-        assertThat(result.status()).isEqualTo(TaskStatus.IN_PROGRESS);
+        assertThat(result.status()).isEqualTo(TaskStatus.COMPLETED);
         assertThat(result.priority()).isEqualTo(TaskPriority.LOW);
-        assertThat(result.dueDate()).isEqualTo(LocalDate.of(2026, 11, 5));
     }
 
     @Test
-    void update_shouldThrowExceptionWhenTaskDoesNotExist() {
-        when(taskRepository.findById(99L)).thenReturn(Optional.empty());
-        TaskUpdateRequest request = new TaskUpdateRequest(
-                "Title", null, TaskStatus.PENDING, TaskPriority.MEDIUM, null);
+    void update_shouldNotTouchTasksOfOtherUsers() {
+        when(taskRepository.findByIdAndOwnerId(25L, OWNER_ID)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> taskService.update(99L, request))
-                .isInstanceOf(TaskNotFoundException.class)
-                .hasMessage("Task with id 99 was not found");
+        assertThatThrownBy(() -> taskService.update(OWNER_ID, 25L, new TaskUpdateRequest(
+                "Hack", null, TaskStatus.PENDING, TaskPriority.LOW, null)))
+                .isInstanceOf(TaskNotFoundException.class);
+
         verify(taskRepository, never()).save(any(TaskEntity.class));
     }
 
     @Test
-    void delete_shouldDeleteExistingTask() {
-        when(taskRepository.existsById(1L)).thenReturn(true);
+    void delete_shouldRemoveOwnedTask() {
+        TaskEntity existing = buildTask(1L, "Task A");
+        when(taskRepository.findByIdAndOwnerId(1L, OWNER_ID)).thenReturn(Optional.of(existing));
 
-        taskService.delete(1L);
+        taskService.delete(OWNER_ID, 1L);
 
-        verify(taskRepository).deleteById(1L);
+        verify(taskRepository).delete(existing);
     }
 
     @Test
-    void delete_shouldThrowExceptionWhenTaskDoesNotExist() {
-        when(taskRepository.existsById(99L)).thenReturn(false);
+    void delete_shouldNotRemoveTasksOfOtherUsers() {
+        when(taskRepository.findByIdAndOwnerId(25L, OWNER_ID)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> taskService.delete(99L))
-                .isInstanceOf(TaskNotFoundException.class)
-                .hasMessage("Task with id 99 was not found");
-        verify(taskRepository, never()).deleteById(any());
+        assertThatThrownBy(() -> taskService.delete(OWNER_ID, 25L)).isInstanceOf(TaskNotFoundException.class);
+
+        verify(taskRepository, never()).delete(any(TaskEntity.class));
     }
 }
