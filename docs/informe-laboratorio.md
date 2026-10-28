@@ -40,40 +40,35 @@ PostgreSQL (contenedor Docker)
 
 ## 5. Evidencias principales de funcionamiento
 
-La evidencia actualmente guardada en `docs/evidence/` incluye el reporte de cobertura JaCoCo (`05-jacoco-report.png`). Este reporte se generó antes de incorporar todas las pruebas de seguridad JWT; por tanto, sus porcentajes son una referencia histórica y no deben presentarse como la cobertura de la rama actual. Para la entrega final, vuelve a ejecutar `./mvnw clean verify` desde `backend/` y reemplaza la captura por la cobertura recién generada. El reporte anterior mostraba:
+La evidencia guardada en `docs/evidence/05-jacoco-report.png` corresponde al reporte actualizado de JaCoCo, generado después de incorporar las pruebas de seguridad JWT. En la ejecución registrada, el proyecto alcanzó:
 
-- `edu.eci.dosw.todo.service`: 100% de cobertura de instrucciones y de ramas.
-- `edu.eci.dosw.todo.entity`, `edu.eci.dosw.todo.dto`, `edu.eci.dosw.todo.exception`: 100% de cobertura de instrucciones.
-- Cobertura total del proyecto: 98% de instrucciones, 100% de ramas — ambas por encima de la meta del 80% sugerida por el laboratorio.
+- Cobertura total de instrucciones: 93% (1.199 de 1.277 instrucciones).
+- Cobertura de ramas: 73% (19 de 26 ramas).
+- Líneas no cubiertas: 19 de 295.
+- Clases analizadas: 34; ninguna clase quedó sin cobertura.
 
-El resto del funcionamiento (Docker, API, integración con React) fue verificado en ejecución local durante el desarrollo, según se describe en la sección de Resultados de las pruebas.
+La cobertura de instrucciones supera la referencia del 80% indicada para el laboratorio, mientras que la cobertura de ramas queda en 73%; por ello, no se debe afirmar que ambas métricas superan el 80%. El reporte HTML se genera en `backend/target/site/jacoco/index.html` al ejecutar las pruebas de backend.
 
 ## 6. Resultados de las pruebas
 
-**Backend — resultados históricos del CRUD inicial:**
+**Backend — ejecución registrada de `./mvnw clean verify`:**
 
+- Resultado: `BUILD SUCCESS`.
+- Total: 66 pruebas ejecutadas; 0 fallos, 0 errores y 0 omitidas.
+- `SecurityIntegrationTest`: 21 pruebas.
+- `TaskRepositoryOwnershipTest`: 5 pruebas.
+- `JwtServiceTest`: 10 pruebas.
+- `TaskControllerTest`: 12 pruebas.
+- `AuthServiceTest`: 8 pruebas.
 - `TaskServiceTest`: 9 pruebas.
-- `TaskControllerTest`: 9 pruebas.
-- `TodoApplicationTests`: 1 prueba (`contextLoads`; en el perfil original dependía de PostgreSQL).
-- Estos 19 casos y la cobertura del 98% de instrucciones / 100% de ramas corresponden a una ejecución anterior a la incorporación de seguridad JWT; no son un conteo ni una medición actualizados de la rama final.
+- `TodoApplicationTests`: 1 prueba.
 
-**Pruebas de seguridad añadidas en la rama `feature/jwt-security`:**
+**Frontend — ejecución registrada:**
 
-- `SecurityIntegrationTest`: pruebas de registro, login, contraseñas, tokens válidos e inválidos, endpoints protegidos, perfil, aislamiento de tareas entre usuarios y acceso administrativo.
-- `JwtServiceTest`: emisión de tokens y rechazo de tokens alterados, expirados, con clave/emisor incorrectos o sin claims requeridos.
-- `AuthServiceTest`: pruebas del servicio de autenticación.
-- `TaskRepositoryOwnershipTest`: pruebas de consultas filtradas por propietario.
+- `npm test`: 13 pruebas aprobadas en 3 archivos (`TaskForm.test.jsx`: 4, `TaskList.test.jsx`: 3 y `TasksPage.test.jsx`: 6).
+- `npm run build`: compilación exitosa.
 
-**Acción pendiente antes de entregar:** ejecutar las pruebas de backend y frontend de nuevo en el estado definitivo, registrar el resultado real y actualizar la captura JaCoCo. No se afirma aquí un total actualizado de pruebas ni un porcentaje de cobertura nuevo porque aún debe obtenerse de esa ejecución final.
-
-**Frontend — resultados registrados anteriormente** (`npm test`):
-
-- `TaskForm.test.jsx`: 4 pruebas.
-- `TaskList.test.jsx`: 3 pruebas.
-- `TasksPage.test.jsx`: 6 pruebas.
-- Total histórico: 13 pruebas.
-
-Después de los cambios de autenticación, vuelve a ejecutar `npm test` y `npm run build` antes de entregar; conserva como resultado final únicamente la salida de esas ejecuciones.
+Estos resultados corresponden a las ejecuciones verificadas en la rama `feature/jwt-security`. Si se modifica el código después de estas ejecuciones, se deben repetir las pruebas para confirmar el estado final.
 
 ## 7. Respuestas a las preguntas de análisis
 
@@ -225,6 +220,3 @@ React envía una petición HTTP con JSON al Controller, que es el único punto d
 
 La implementación de seguridad se documenta en [`informe-seguridad-jwt.md`](informe-seguridad-jwt.md). Incluye los endpoints de autenticación, la validación del token, los permisos por rol y las pruebas de aislamiento de tareas. La guía de ejecución y las variables de entorno están en el [README principal](../README.md).
 
-## 9. Video de demostración
-
-**Pendiente:** agregar el enlace real al video de demostración cuando esté grabado y publicado. No dejar el marcador `https://...` en la versión entregada.
