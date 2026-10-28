@@ -56,9 +56,10 @@ Durante las pruebas manuales se verificaron los siguientes escenarios:
 
 Además, se ejecutaron las pruebas automatizadas del proyecto:
 
-- Backend: `mvn clean verify` — compilación y pruebas exitosas.
-- Frontend: `npm test` — 13 pruebas exitosas.
+- Backend: `./mvnw clean verify` — `BUILD SUCCESS`; 66 pruebas ejecutadas, 0 fallos, 0 errores y 0 omitidas.
+- Frontend: `npm test` — 13 pruebas aprobadas en 3 archivos.
 - Frontend: `npm run build` — compilación exitosa.
+- Cobertura JaCoCo registrada: 93% de instrucciones (1.199/1.277) y 73% de ramas (19/26).
 
 ## 7. Limitaciones y recomendaciones
 
@@ -73,7 +74,7 @@ Además, se ejecutaron las pruebas automatizadas del proyecto:
 
 El conjunto `SecurityIntegrationTest` comprueba el registro, el inicio de sesión, la validación del token, los endpoints protegidos, el perfil, el aislamiento de tareas entre usuarios y la restricción del endpoint administrativo. `TaskRepositoryOwnershipTest` verifica las consultas filtradas por propietario y `JwtServiceTest` cubre la emisión y el rechazo de tokens inválidos, alterados, expirados o con emisor incorrecto.
 
-Los resultados de las pruebas descritos aquí corresponden a las ejecuciones registradas durante el desarrollo. Antes de la entrega final, ejecuta de nuevo las pruebas en el estado definitivo del repositorio y actualiza cualquier cifra si cambia.
+Las cifras anteriores corresponden a las ejecuciones registradas en la rama `feature/jwt-security`. Si se modifica el código después de esas ejecuciones, se deben repetir las pruebas y actualizar los resultados para que el informe coincida con el estado final.
 
 ## 9. Conclusión
 
