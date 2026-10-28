@@ -8,6 +8,7 @@ import edu.eci.dosw.todo.entity.TaskPriority;
 import edu.eci.dosw.todo.entity.TaskStatus;
 import edu.eci.dosw.todo.exception.TaskNotFoundException;
 import edu.eci.dosw.todo.repository.TaskRepository;
+import edu.eci.dosw.todo.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,28 +19,30 @@ import java.util.List;
 public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
+    private final UserRepository userRepository;
 
-    public TaskServiceImpl(TaskRepository taskRepository) {
+    public TaskServiceImpl(TaskRepository taskRepository, UserRepository userRepository) {
         this.taskRepository = taskRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<TaskResponse> findAll() {
-        return taskRepository.findAll().stream()
+    public List<TaskResponse> findAll(Long ownerId) {
+        return taskRepository.findAllByOwnerId(ownerId).stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public TaskResponse findById(Long id) {
-        return toResponse(getEntityOrThrow(id));
+    public TaskResponse findById(Long ownerId, Long id) {
+        return toResponse(getOwnedOrThrow(ownerId, id));
     }
 
     @Override
     @Transactional
-    public TaskResponse create(TaskCreateRequest request) {
+    public TaskResponse create(Long ownerId, TaskCreateRequest request) {
         TaskEntity task = new TaskEntity();
         task.setTitle(request.title());
         task.setDescription(request.description());
@@ -47,13 +50,14 @@ public class TaskServiceImpl implements TaskService {
         task.setPriority(request.priority() != null ? request.priority() : TaskPriority.MEDIUM);
         task.setDueDate(request.dueDate());
         task.setCreatedAt(LocalDateTime.now());
+        task.setOwner(userRepository.getReferenceById(ownerId));
         return toResponse(taskRepository.save(task));
     }
 
     @Override
     @Transactional
-    public TaskResponse update(Long id, TaskUpdateRequest request) {
-        TaskEntity task = getEntityOrThrow(id);
+    public TaskResponse update(Long ownerId, Long id, TaskUpdateRequest request) {
+        TaskEntity task = getOwnedOrThrow(ownerId, id);
         task.setTitle(request.title());
         task.setDescription(request.description());
         task.setStatus(request.status());
@@ -64,15 +68,12 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional
-    public void delete(Long id) {
-        if (!taskRepository.existsById(id)) {
-            throw new TaskNotFoundException(id);
-        }
-        taskRepository.deleteById(id);
+    public void delete(Long ownerId, Long id) {
+        taskRepository.delete(getOwnedOrThrow(ownerId, id));
     }
 
-    private TaskEntity getEntityOrThrow(Long id) {
-        return taskRepository.findById(id)
+    private TaskEntity getOwnedOrThrow(Long ownerId, Long id) {
+        return taskRepository.findByIdAndOwnerId(id, ownerId)
                 .orElseThrow(() -> new TaskNotFoundException(id));
     }
 
