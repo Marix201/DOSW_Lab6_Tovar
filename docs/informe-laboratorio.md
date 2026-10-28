@@ -10,7 +10,7 @@
 
 ## 3. Descripción de la solución
 
-La aplicación ToDo permite gestionar tareas personales (crear, consultar, editar, cambiar de estado y eliminar) desde una interfaz web en React que consume una API REST construida con Spring Boot 4 y Java 21. La información se persiste en PostgreSQL 17, ejecutado en un contenedor Docker.
+La aplicación ToDo permite gestionar tareas personales (crear, consultar, editar, cambiar de estado y eliminar) desde una interfaz web en React que consume una API REST construida con Spring Boot 4 y Java 21. La información se persiste en PostgreSQL 17, ejecutado en un contenedor Docker. La rama de seguridad incorpora registro e inicio de sesión, autenticación JWT, consulta del perfil, autorización por roles y aislamiento de tareas según el usuario autenticado.
 
 El backend expone los endpoints bajo `/api/v1/tasks`, valida los datos de entrada, asigna valores por defecto al crear una tarea (`status = PENDING`, `priority = MEDIUM` si no se especifica) y maneja errores de forma centralizada devolviendo códigos HTTP apropiados. El frontend consume esa API mediante `fetch`, mantiene el estado de las tareas con `useState`/`useEffect` en un hook dedicado (`useTasks`), y permite crear, editar, cambiar de estado y eliminar tareas desde formularios y listas reutilizables.
 
@@ -40,7 +40,7 @@ PostgreSQL (contenedor Docker)
 
 ## 5. Evidencias principales de funcionamiento
 
-La evidencia incluida en `docs/evidence/` es el reporte de cobertura generado por JaCoCo (`05-jacoco-report.png`), que muestra:
+La evidencia actualmente guardada en `docs/evidence/` incluye el reporte de cobertura JaCoCo (`05-jacoco-report.png`). Este reporte se generó antes de incorporar todas las pruebas de seguridad JWT; por tanto, sus porcentajes son una referencia histórica y no deben presentarse como la cobertura de la rama actual. Para la entrega final, vuelve a ejecutar `./mvnw clean verify` desde `backend/` y reemplaza la captura por la cobertura recién generada. El reporte anterior mostraba:
 
 - `edu.eci.dosw.todo.service`: 100% de cobertura de instrucciones y de ramas.
 - `edu.eci.dosw.todo.entity`, `edu.eci.dosw.todo.dto`, `edu.eci.dosw.todo.exception`: 100% de cobertura de instrucciones.
@@ -50,20 +50,30 @@ El resto del funcionamiento (Docker, API, integración con React) fue verificado
 
 ## 6. Resultados de las pruebas
 
-**Backend** (`./mvnw clean verify`):
+**Backend — resultados históricos del CRUD inicial:**
 
-- `TaskServiceTest`: 9 pruebas, 0 fallos.
-- `TaskControllerTest`: 9 pruebas, 0 fallos.
-- `TodoApplicationTests`: 1 prueba (`contextLoads`), 0 fallos (requiere el contenedor de PostgreSQL levantado).
-- Total: 19 pruebas, `BUILD SUCCESS`.
-- Reporte de cobertura generado con JaCoCo: 98% de instrucciones, 100% de ramas.
+- `TaskServiceTest`: 9 pruebas.
+- `TaskControllerTest`: 9 pruebas.
+- `TodoApplicationTests`: 1 prueba (`contextLoads`; en el perfil original dependía de PostgreSQL).
+- Estos 19 casos y la cobertura del 98% de instrucciones / 100% de ramas corresponden a una ejecución anterior a la incorporación de seguridad JWT; no son un conteo ni una medición actualizados de la rama final.
 
-**Frontend** (`npm test`):
+**Pruebas de seguridad añadidas en la rama `feature/jwt-security`:**
+
+- `SecurityIntegrationTest`: pruebas de registro, login, contraseñas, tokens válidos e inválidos, endpoints protegidos, perfil, aislamiento de tareas entre usuarios y acceso administrativo.
+- `JwtServiceTest`: emisión de tokens y rechazo de tokens alterados, expirados, con clave/emisor incorrectos o sin claims requeridos.
+- `AuthServiceTest`: pruebas del servicio de autenticación.
+- `TaskRepositoryOwnershipTest`: pruebas de consultas filtradas por propietario.
+
+**Acción pendiente antes de entregar:** ejecutar las pruebas de backend y frontend de nuevo en el estado definitivo, registrar el resultado real y actualizar la captura JaCoCo. No se afirma aquí un total actualizado de pruebas ni un porcentaje de cobertura nuevo porque aún debe obtenerse de esa ejecución final.
+
+**Frontend — resultados registrados anteriormente** (`npm test`):
 
 - `TaskForm.test.jsx`: 4 pruebas.
 - `TaskList.test.jsx`: 3 pruebas.
 - `TasksPage.test.jsx`: 6 pruebas.
-- Total: 13 pruebas, todas exitosas.
+- Total histórico: 13 pruebas.
+
+Después de los cambios de autenticación, vuelve a ejecutar `npm test` y `npm run build` antes de entregar; conserva como resultado final únicamente la salida de esas ejecuciones.
 
 ## 7. Respuestas a las preguntas de análisis
 
@@ -211,6 +221,10 @@ PostgreSQL
 
 React envía una petición HTTP con JSON al Controller, que es el único punto de entrada de la API. El Controller no contiene lógica de negocio: delega inmediatamente al Service, que aplica las reglas (valores por defecto, validación de existencia) y usa el Repository para leer o escribir datos. El Repository, generado por Spring Data JPA, traduce esas llamadas en operaciones sobre las entidades JPA, que Hibernate convierte en sentencias SQL concretas ejecutadas contra PostgreSQL. El resultado hace el camino inverso: de PostgreSQL a la entidad, de la entidad a un DTO de respuesta, y del DTO a JSON que React recibe y usa para actualizar la interfaz.
 
-## 8. Video de demostración
+## 8. Seguridad JWT
 
-https://... (pendiente de agregar el enlace)
+La implementación de seguridad se documenta en [`informe-seguridad-jwt.md`](informe-seguridad-jwt.md). Incluye los endpoints de autenticación, la validación del token, los permisos por rol y las pruebas de aislamiento de tareas. La guía de ejecución y las variables de entorno están en el [README principal](../README.md).
+
+## 9. Video de demostración
+
+**Pendiente:** agregar el enlace real al video de demostración cuando esté grabado y publicado. No dejar el marcador `https://...` en la versión entregada.
