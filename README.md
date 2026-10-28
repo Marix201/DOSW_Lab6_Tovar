@@ -1,4 +1,4 @@
-# ToDo App — Laboratorio 6 DOSW
+# ToDo App — Laboratorio 7 DOSW
 
 Aplicación full stack de gestión de tareas personales con autenticación y autorización mediante JWT. Desarrollada para el Laboratorio 6 de DOSW con Spring Boot 4, Java 21, PostgreSQL 17, React y Vite.
 
