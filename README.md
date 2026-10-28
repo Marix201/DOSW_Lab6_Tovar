@@ -76,7 +76,7 @@ docker run -d --name todo-postgres \
 
 Si el contenedor ya existe y está detenido, usa `docker start todo-postgres` en lugar de volver a ejecutar `docker run`.
 
-Aplica ambos scripts en orden, desde la raíz del repositorio:
+**Primera instalación de la base de datos:** aplica ambos scripts en orden, desde la raíz del repositorio. El script `001_create_schema.sql` crea la tabla inicial y no está diseñado para ejecutarse repetidamente:
 
 ```bash
 docker cp database/001_create_schema.sql todo-postgres:/001_create_schema.sql
@@ -86,6 +86,8 @@ docker exec -i todo-postgres psql -U todo_user -d todo_db -f /002_add_users_secu
 ```
 
 El segundo script agrega usuarios y propiedad de tareas, y conserva las tareas existentes asignándolas a una cuenta heredada no utilizable para iniciar sesión. La aplicación usa `spring.jpa.hibernate.ddl-auto=validate`, por lo que el esquema debe estar creado antes de iniciar el backend.
+
+**Si ya tienes una base de datos con la tabla `tasks`:** no vuelvas a ejecutar `001_create_schema.sql`. Haz una copia de seguridad y aplica únicamente `002_add_users_security.sql` para incorporar la estructura de seguridad. Si la migración ya se aplicó, no necesitas ejecutarla de nuevo salvo que estés comprobando su idempotencia.
 
 > En una instalación local existente, haz una copia de seguridad de la base de datos antes de ejecutar una migración. No elimines el volumen para intentar corregir errores de esquema.
 
